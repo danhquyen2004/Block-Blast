@@ -90,14 +90,20 @@ namespace BlockBlast.Core
             if (isProcessingPlacement)
                 return;
 
-            // Clear preview highlight
-            boardManager.ClearPreview();
-
             Vector3 mousePos = mainCamera.ScreenToWorldPoint(Input.mousePosition);
             
             // Adjust for block's pivot offset
             Vector3 adjustedPos = mousePos - currentDraggingBlock.GetPivotOffset();
             Vector2Int gridPos = boardManager.GetGridPosition(adjustedPos);
+
+            // Prepare clear effect TRƯỚC khi clear preview
+            if (boardManager.CanPlaceBlock(currentDraggingBlock.Shape, gridPos))
+            {
+                boardManager.PrepareClearEffect(currentDraggingBlock.Shape, gridPos, currentDraggingBlock.StoneSprite);
+            }
+
+            // Clear preview highlight
+            boardManager.ClearPreview();
 
             if (TryPlaceBlock(currentDraggingBlock, gridPos))
             {

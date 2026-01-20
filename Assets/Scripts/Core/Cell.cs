@@ -57,9 +57,21 @@ namespace BlockBlast.Core
             
             if (stoneRenderer != null)
             {
+                // Reset hoàn toàn state
                 stoneRenderer.sprite = filled ? stoneSprite : null;
                 stoneRenderer.enabled = filled;
+                stoneRenderer.color = Color.white; // Reset color
+                stoneRenderer.transform.localScale = Vector3.one; // Reset scale
+                
+                // Tắt glow
+                if (stoneRenderer.material != null)
+                {
+                    stoneRenderer.material.DisableKeyword("GLOW_ON");
+                }
             }
+            
+            // Clear preview state
+            originalSpriteBeforePreview = null;
         }
 
         public void Highlight(bool enabled, bool isValid)
@@ -143,6 +155,25 @@ namespace BlockBlast.Core
         public Sprite GetCurrentStoneSprite()
         {
             return currentStoneSprite;
+        }
+
+        public void SetClearEffectSprite(Sprite effectSprite)
+        {
+            if (stoneRenderer != null)
+            {
+                stoneRenderer.sprite = effectSprite;
+                currentStoneSprite = effectSprite;
+                stoneRenderer.enabled = true;
+                stoneRenderer.color = Color.white; // Đảm bảo alpha = 1
+            }
+        }
+
+        public void SetScale(float scale)
+        {
+            if (stoneRenderer != null)
+            {
+                stoneRenderer.transform.localScale = Vector3.one * scale;
+            }
         }
     }
 }

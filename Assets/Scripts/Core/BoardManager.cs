@@ -20,6 +20,10 @@ namespace BlockBlast.Core
         private int width;
         private int height;
         private List<Vector2Int> currentPreviewCells = new List<Vector2Int>();
+        private Sprite currentBlockSprite; // Lưu sprite của block vừa đặt để dùng cho hiệu ứng clear
+        private HashSet<Vector2Int> cellsPendingClear = new HashSet<Vector2Int>(); // Các cell sẽ bị clear, giữ preview
+
+        
 
         [SerializeField] private GameObject cellPrefab;
         [SerializeField] private Transform boardContainer;
@@ -81,8 +85,37 @@ namespace BlockBlast.Core
             return true;
         }
 
+        public void PrepareClearEffect(BlockShape shape, Vector2Int position, Sprite blockSprite)
+        {
+            // Lưu sprite cho hiệu ứng clear
+            currentBlockSprite = blockSprite;
+            
+            // Tính toán các cells sẽ bị clear SAU KHI đặt block
+            var (rows, columns) = CheckLinesAfterPlacement(shape, position);
+            
+            // Lưu các cells sẽ bị clear để ClearPreview không reset chúng
+            cellsPendingClear.Clear();
+            foreach (int row in rows)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    cellsPendingClear.Add(new Vector2Int(x, row));
+                }
+            }
+            foreach (int column in columns)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    cellsPendingClear.Add(new Vector2Int(column, y));
+                }
+            }
+        }
+
         public void PlaceBlock(BlockShape shape, Vector2Int position, Sprite stoneSprite)
         {
+            // Cập nhật sprite hiện tại - đây là sprite thực tế của block vừa đặt
+            currentBlockSprite = stoneSprite;
+            
             foreach (Vector2Int cell in shape.cells)
             {
                 int x = position.x + cell.x;
@@ -132,47 +165,108 @@ namespace BlockBlast.Core
                     columnsToRemove.Add(x);
             }
 
-            // Xóa các ô
+            // Nếu có dòng/cột để xóa, lưu lại các cell và bắt đầu hiệu ứng
+            if (rowsToRemove.Count > 0 || columnsToRemove.Count > 0)
+            {
+                // Lưu các cell sẽ bị clear để ClearPreview không reset chúng
+                cellsPendingClear.Clear();
+                foreach (int row in rowsToRemove)
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        cellsPendingClear.Add(new Vector2Int(x, row));
+                    }
+                }
+                foreach (int column in columnsToRemove)
+                {
+                    for (int y = 0; y < height; y++)
+                    {
+                        cellsPendingClear.Add(new Vector2Int(column, y));
+                    }
+                }
+                
+                StartCoroutine(ClearLinesWithEffect(rowsToRemove, columnsToRemove));
+            }
+
+            return (rowsToRemove, columnsToRemove);
+        }
+
+        private System.Collections.IEnumerator ClearLinesWithEffect(List<int> rowsToRemove, List<int> columnsToRemove)
+        {
+            // Tạo danh sách các cell cần clear (tránh duplicate)
+            HashSet<Vector2Int> cellsToClear = new HashSet<Vector2Int>();
+            
             foreach (int row in rowsToRemove)
             {
                 for (int x = 0; x < width; x++)
                 {
-                    SpawnDestroyEffect(x, row);
-                    cells[x, row].SetFilled(false, null, config.cellBackgroundSprite);
+                    cellsToClear.Add(new Vector2Int(x, row));
                 }
             }
-
+            
             foreach (int column in columnsToRemove)
             {
                 for (int y = 0; y < height; y++)
                 {
-                    // Tránh spawn effect 2 lần cho cell nằm ở giao điểm
-                    bool alreadyDestroyed = false;
-                    foreach (int row in rowsToRemove)
-                    {
-                        if (y == row)
-                        {
-                            alreadyDestroyed = true;
-                            break;
-                        }
-                    }
-                    
-                    if (!alreadyDestroyed)
-                    {
-                        SpawnDestroyEffect(column, y);
-                    }
-                    
-                    cells[column, y].SetFilled(false, null, config.cellBackgroundSprite);
+                    cellsToClear.Add(new Vector2Int(column, y));
                 }
             }
 
+            // Bước 1: Đảm bảo TẤT CẢ cells đều có sprite và glow đúng
+            foreach (Vector2Int pos in cellsToClear)
+            {
+                Cell cell = cells[pos.x, pos.y];
+                // Set sprite cho tất cả cells (kể cả cells đã có preview)
+                if (currentBlockSprite != null)
+                {
+                    cell.SetClearEffectSprite(currentBlockSprite);
+                }
+                // Đảm bảo glow đang bật
+                cell.SetGlow(true);
+            }
+
+            // Không cần delay, bắt đầu animation ngay
+
+            // Bước 2: Scale animation (từ 1 về 0)
+            float duration = 0.3f;
+            float elapsed = 0f;
+            
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = elapsed / duration;
+                float scale = Mathf.Lerp(1f, 0f, t);
+                
+                foreach (Vector2Int pos in cellsToClear)
+                {
+                    cells[pos.x, pos.y].SetScale(scale);
+                }
+                
+                yield return null;
+            }
+
+            // Bước 3: Xóa cells và reset scale
+            foreach (Vector2Int pos in cellsToClear)
+            {
+                Cell cell = cells[pos.x, pos.y];
+                cell.SetScale(1f); // Reset scale về 1
+                cell.SetGlow(false);
+                cell.SetFilled(false, null, config.cellBackgroundSprite);
+                
+                // Spawn destroy effect nếu có
+                SpawnDestroyEffect(pos.x, pos.y);
+            }
+
+            // Invoke events
             if (rowsToRemove.Count > 0)
                 OnRowsCleared?.Invoke(rowsToRemove);
 
             if (columnsToRemove.Count > 0)
                 OnColumnsCleared?.Invoke(columnsToRemove);
-
-            return (rowsToRemove, columnsToRemove);
+            
+            // Clear danh sách pending và reset sprite
+            cellsPendingClear.Clear();
+            currentBlockSprite = null; // Reset sprite đệ tránh ảnh hưởng block tiếp theo
         }
 
         private (List<int> rows, List<int> columns) CheckLinesAfterPlacement(BlockShape shape, Vector2Int position)
@@ -350,12 +444,6 @@ namespace BlockBlast.Core
             // Kiểm tra xem có dòng/cột nào sẽ bị xóa không
             var (rows, columns) = CheckLinesAfterPlacement(shape, position);
 
-            Debug.Log($"[Preview] Rows to clear: {rows.Count}, Columns to clear: {columns.Count}");
-            if (rows.Count > 0)
-                Debug.Log($"[Preview] Rows: {string.Join(", ", rows)}");
-            if (columns.Count > 0)
-                Debug.Log($"[Preview] Columns: {string.Join(", ", columns)}");
-
             // Bật glow cho các cell trong dòng/cột sẽ bị xóa
             foreach (int row in rows)
             {
@@ -363,7 +451,6 @@ namespace BlockBlast.Core
                 {
                     if (cells[x, row].IsFilled)
                     {
-                        Debug.Log($"[Glow] Setting glow ON for cell ({x}, {row})");
                         cells[x, row].SetGlow(true);
                         cells[x, row].SetPreviewSpriteForFilledCell(blockSprite);
                     }
@@ -386,23 +473,38 @@ namespace BlockBlast.Core
 
         public void ClearPreview()
         {
-            // Clear preview sprites
+            Debug.Log("clear preview called");
+            // Clear preview sprites (bỏ qua cells đang pending clear)
             foreach (Vector2Int pos in currentPreviewCells)
             {
                 if (pos.x >= 0 && pos.x < width && pos.y >= 0 && pos.y < height)
                 {
-                    cells[pos.x, pos.y].ClearPreview();
+                    if (!cellsPendingClear.Contains(pos))
+                    {
+                        cells[pos.x, pos.y].ClearPreview();
+                    }
                 }
             }
             currentPreviewCells.Clear();
 
-            // Clear glow và restore sprite trên tất cả cells
+            // Clear glow và restore sprite trên tất cả cells (bỏ qua cells pending clear)
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
-                    cells[x, y].ClearPreview(); // Gọi ClearPreview cho tất cả cells
+                    Vector2Int pos = new Vector2Int(x, y);
+                    if (!cellsPendingClear.Contains(pos))
+                    {
+                        cells[x, y].ClearPreview(); // Gọi ClearPreview cho cells không pending
+                    }
                 }
+            }
+            
+            // QUAN TRỌNG: Nếu không có cells pending clear, reset currentBlockSprite
+            // Nếu có cells pending, để coroutine tự clear sau
+            if (cellsPendingClear.Count == 0)
+            {
+                currentBlockSprite = null;
             }
         }
     }
