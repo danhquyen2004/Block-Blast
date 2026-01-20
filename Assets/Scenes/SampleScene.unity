@@ -786,6 +786,7 @@ MonoBehaviour:
   cellPrefab: {fileID: 4548467420568997226, guid: 044f05198b7bf62488806a51a48f3c29, type: 3}
   boardContainer: {fileID: 315078472}
   destroyEffectPrefab: {fileID: 0}
+  clearEffectDuration: 0.3
 --- !u!4 &315078472
 Transform:
   m_ObjectHideFlags: 0
@@ -989,7 +990,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 8
+  orthographic size: 9.73
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2

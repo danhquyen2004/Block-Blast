@@ -3,34 +3,46 @@ using UnityEngine;
 namespace BlockBlast.Core
 {
     /// <summary>
-    /// Một ô trên bảng
+    /// Một ô trên bảng chơi
     /// </summary>
     public class Cell : MonoBehaviour
     {
+        #region Serialized Fields
         [SerializeField] private SpriteRenderer backgroundRenderer;
         [SerializeField] private SpriteRenderer stoneRenderer;
-        [SerializeField] private Material blockCellMaterial; // Material có GLOW_ON keyword
-        
+        [SerializeField] private Material blockCellMaterial;
+        #endregion
+
+        #region Properties
         public int X { get; private set; }
         public int Y { get; private set; }
         public bool IsFilled { get; private set; }
-        private Sprite currentStoneSprite;
-        private Sprite originalSpriteBeforePreview; // Lưu sprite gốc trước khi preview
+        #endregion
 
+        #region Private Fields
+        private Sprite currentStoneSprite;
+        private Sprite originalSpriteBeforePreview;
+        #endregion
+
+        #region Initialization
         public void Initialize(int x, int y, bool filled)
         {
             X = x;
             Y = y;
             IsFilled = filled;
 
+            SetupRenderers();
+        }
+
+        private void SetupRenderers()
+        {
             if (backgroundRenderer == null)
             {
                 backgroundRenderer = GetComponent<SpriteRenderer>();
                 if (backgroundRenderer != null)
-                    backgroundRenderer.sortingOrder = 0; // Thấp nhất - background
+                    backgroundRenderer.sortingOrder = 0;
             }
             
-            // Tạo stone renderer nếu chưa có
             if (stoneRenderer == null)
             {
                 GameObject stoneObj = new GameObject("Stone");
@@ -39,14 +51,15 @@ namespace BlockBlast.Core
                 stoneRenderer = stoneObj.AddComponent<SpriteRenderer>();
                 stoneRenderer.sortingOrder = 1;
                 
-                // Sử dụng blockCellMaterial nếu có
                 if (blockCellMaterial != null)
                 {
                     stoneRenderer.material = new Material(blockCellMaterial);
                 }
             }
         }
+        #endregion
 
+        #region Fill State
         public void SetFilled(bool filled, Sprite stoneSprite, Sprite backgroundSprite)
         {
             IsFilled = filled;
@@ -57,49 +70,53 @@ namespace BlockBlast.Core
             
             if (stoneRenderer != null)
             {
-                // Reset hoàn toàn state
                 stoneRenderer.sprite = filled ? stoneSprite : null;
                 stoneRenderer.enabled = filled;
-                stoneRenderer.color = Color.white; // Reset color
-                stoneRenderer.transform.localScale = Vector3.one; // Reset scale
-                
-                // Tắt glow
-                if (stoneRenderer.material != null)
-                {
-                    stoneRenderer.material.DisableKeyword("GLOW_ON");
-                }
+                ResetVisuals();
             }
             
-            // Clear preview state
             originalSpriteBeforePreview = null;
         }
 
-        public void Highlight(bool enabled, bool isValid)
+        public Sprite GetCurrentStoneSprite()
         {
-            // Không dùng nữa - preview sẽ dùng sprite thay vì màu background
+            return currentStoneSprite;
         }
+        #endregion
 
+        #region Preview System
         public void ShowPreview(Sprite previewSprite, bool isValid)
         {
             if (stoneRenderer != null && !IsFilled && isValid)
             {
                 stoneRenderer.sprite = previewSprite;
                 stoneRenderer.enabled = true;
-                // Chỉ hiện preview với alpha thấp, không có màu tint
                 stoneRenderer.color = new Color(1f, 1f, 1f, 0.5f);
+            }
+        }
+
+        public void SetPreviewSpriteForFilledCell(Sprite previewSprite)
+        {
+            if (stoneRenderer != null && IsFilled)
+            {
+                if (originalSpriteBeforePreview == null)
+                {
+                    originalSpriteBeforePreview = stoneRenderer.sprite;
+                }
+                stoneRenderer.sprite = previewSprite;
             }
         }
 
         public void ClearPreview()
         {
-            // Clear preview cho cells tr\u1ed1ng
+            // Clear preview cho cells trống
             if (stoneRenderer != null && !IsFilled)
             {
                 stoneRenderer.enabled = false;
-                stoneRenderer.color = Color.white; // Reset v\u1ec1 m\u00e0u b\u00ecnh th\u01b0\u1eddng
+                stoneRenderer.color = Color.white;
             }
             
-            // Restore sprite g\u1ed1c cho cells \u0111\u00e3 filled
+            // Restore sprite gốc cho cells đã filled
             if (IsFilled && stoneRenderer != null && originalSpriteBeforePreview != null)
             {
                 stoneRenderer.sprite = originalSpriteBeforePreview;
@@ -108,55 +125,9 @@ namespace BlockBlast.Core
             
             SetGlow(false);
         }
+        #endregion
 
-        public void SetPreviewSpriteForFilledCell(Sprite previewSprite)
-        {
-            if (stoneRenderer != null && IsFilled)
-            {
-                // Lưu sprite hiện tại trước khi thay đổi
-                if (originalSpriteBeforePreview == null)
-                {
-                    originalSpriteBeforePreview = stoneRenderer.sprite;
-                }
-                // Đổi sang sprite của block đang drag
-                stoneRenderer.sprite = previewSprite;
-            }
-        }
-
-        public void SetGlow(bool enabled)
-        {
-            // Set glow cho stone renderer (cells đã fill)
-            if (stoneRenderer != null && IsFilled)
-            {
-                Material mat = stoneRenderer.material;
-                if (mat != null)
-                {
-                    if (enabled)
-                        mat.EnableKeyword("GLOW_ON");
-                    else
-                        mat.DisableKeyword("GLOW_ON");
-                }
-            }
-            
-            // Cũng có thể set glow cho background renderer
-            if (backgroundRenderer != null)
-            {
-                Material mat = backgroundRenderer.material;
-                if (mat != null)
-                {
-                    if (enabled)
-                        mat.EnableKeyword("GLOW_ON");
-                    else
-                        mat.DisableKeyword("GLOW_ON");
-                }
-            }
-        }
-
-        public Sprite GetCurrentStoneSprite()
-        {
-            return currentStoneSprite;
-        }
-
+        #region Clear Effect
         public void SetClearEffectSprite(Sprite effectSprite)
         {
             if (stoneRenderer != null)
@@ -164,7 +135,7 @@ namespace BlockBlast.Core
                 stoneRenderer.sprite = effectSprite;
                 currentStoneSprite = effectSprite;
                 stoneRenderer.enabled = true;
-                stoneRenderer.color = Color.white; // Đảm bảo alpha = 1
+                stoneRenderer.color = Color.white;
             }
         }
 
@@ -175,5 +146,47 @@ namespace BlockBlast.Core
                 stoneRenderer.transform.localScale = Vector3.one * scale;
             }
         }
+
+        public void SetGlow(bool enabled)
+        {
+            SetRendererGlow(stoneRenderer, enabled && IsFilled);
+            SetRendererGlow(backgroundRenderer, enabled);
+        }
+
+        private void SetRendererGlow(SpriteRenderer renderer, bool enabled)
+        {
+            if (renderer != null && renderer.material != null)
+            {
+                if (enabled)
+                    renderer.material.EnableKeyword("GLOW_ON");
+                else
+                    renderer.material.DisableKeyword("GLOW_ON");
+            }
+        }
+
+        /// <summary>
+        /// Reset tất cả visual state về mặc định
+        /// </summary>
+        public void ResetVisuals()
+        {
+            if (stoneRenderer != null)
+            {
+                stoneRenderer.color = Color.white;
+                stoneRenderer.transform.localScale = Vector3.one;
+                
+                if (stoneRenderer.material != null)
+                {
+                    stoneRenderer.material.DisableKeyword("GLOW_ON");
+                }
+            }
+        }
+        #endregion
+
+        #region Deprecated
+        public void Highlight(bool enabled, bool isValid)
+        {
+            // Không dùng nữa - preview sẽ dùng sprite thay vì màu background
+        }
+        #endregion
     }
 }
