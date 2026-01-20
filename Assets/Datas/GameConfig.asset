@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 74842910010cbbe44831461647070eba, type: 3}
+  m_Name: GameConfig
+  m_EditorClassIdentifier: 
+  boardWidth: 8
+  boardHeight: 8
+  blockSpawnCount: 3
+  cellSize: 1
+  blockSpacing: 2
+  baseScorePerCell: 1
+  baseScorePerLine: 8
+  comboMultiplier: 0.1
+  moveCountForCombo: 3
+  blockPlacementDuration: 0.2
+  blockReturnDuration: 0.3
+  lineClearDelay: 0.3
+  cellDestroyDuration: 0.2
+  emptyCellSprite: {fileID: 21300000, guid: 447114495a591b248b333eebd6980ae5, type: 3}
+  cellBackgroundSprite: {fileID: 21300000, guid: 447114495a591b248b333eebd6980ae5, type: 3}
+  boardBackgroundSprite: {fileID: 21300000, guid: 99e1a44d172bcd84783d6c69e6fb59e8, type: 3}
+  blockStoneSprites:
+  - {fileID: 21300000, guid: ee5d314df36a7fa4a891e99f735510ca, type: 3}
+  - {fileID: 21300000, guid: 553b62580384f1d46afbec31eaf76ed7, type: 3}
+  - {fileID: 21300000, guid: 0a6489fcca8dac6428dbaa769a394916, type: 3}
+  - {fileID: 21300000, guid: e71c9b056181ef34482ca5cdbbc1b34f, type: 3}
+  - {fileID: 21300000, guid: d2e56f76a44703a4cbc8d4eb6b92b220, type: 3}
+  - {fileID: 21300000, guid: 757d1bdb7bfb92846b9e5208af2788d6, type: 3}
+  - {fileID: 21300000, guid: 6ca88c8baab018b40a336d626c04ece1, type: 3}
+  - {fileID: 21300000, guid: ad071bbfc50c01941b16bb2944ec5fd4, type: 3}
+  - {fileID: 21300000, guid: 80ec3be9489fd784fb79bd7bac7c2470, type: 3}
+  - {fileID: 21300000, guid: 1f8346ae724eba040bcdb7f5901225a6, type: 3}
