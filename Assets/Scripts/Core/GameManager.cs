@@ -112,8 +112,10 @@ namespace BlockBlast.Core
             // Đánh dấu block đã đặt thành công
             block.PlaceSuccess();
             
-            // Kiểm tra game over sau khi đặt block
-            CheckGameOverDelayedAsync(0.3f).Forget();
+            // Kiểm tra game over SAU KHI clear effect hoàn tất
+            // Nếu có clear lines thì đợi effect duration + thêm buffer time
+            float delayTime = totalLines > 0 ? boardManager.GetClearEffectDuration() + 0.1f : 0.3f;
+            CheckGameOverDelayedAsync(delayTime).Forget();
         }
 
         private void OnLinesCleared(System.Collections.Generic.List<int> lines)

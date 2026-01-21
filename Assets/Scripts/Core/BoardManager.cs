@@ -276,5 +276,12 @@ namespace BlockBlast.Core
             }
         }
         #endregion
+        
+        #region Public Accessors
+        public float GetClearEffectDuration()
+        {
+            return clearEffectDuration;
+        }
+        #endregion
     }
 }
