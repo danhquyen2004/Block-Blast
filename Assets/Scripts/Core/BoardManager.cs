@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using BlockBlast.Data;
 using BlockBlast.Effects;
+using BlockBlast.Utils;
 
 namespace BlockBlast.Core
 {
@@ -208,16 +209,29 @@ namespace BlockBlast.Core
 
         private void SpawnDestroyEffect(int x, int y)
         {
-            if (destroyEffectPrefab != null)
+            if (destroyEffectPrefab == null)
+                return;
+
+            CellDestroyEffect effectPrefab = destroyEffectPrefab.GetComponent<CellDestroyEffect>();
+            if (effectPrefab == null)
             {
-                Vector3 worldPos = GetWorldPosition(new Vector2Int(x, y));
-                GameObject effectObj = Instantiate(destroyEffectPrefab, worldPos, Quaternion.identity);
-                
-                CellDestroyEffect effect = effectObj.GetComponent<CellDestroyEffect>();
-                if (effect != null)
-                {
-                    effect.PlayEffect(worldPos, cells[x, y].GetCurrentStoneSprite());
-                }
+                Debug.LogError("Destroy effect prefab không có CellDestroyEffect component!");
+                return;
+            }
+
+            // Dùng singleton instance
+            if (ObjectPoolingCellDestroyEffect.Instant == null)
+            {
+                Debug.LogError("[BoardManager] Chưa có ObjectPoolingCellDestroyEffect trong scene! Tạo GameObject và add component.");
+                return;
+            }
+
+            Vector3 worldPos = GetWorldPosition(new Vector2Int(x, y));
+            CellDestroyEffect effect = ObjectPoolingCellDestroyEffect.Instant.GetObjectType(effectPrefab);
+            
+            if (effect != null)
+            {
+                effect.PlayEffect(worldPos, cells[x, y].GetCurrentStoneSprite());
             }
         }
         #endregion

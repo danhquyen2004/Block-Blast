@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using BlockBlast.Data;
+using BlockBlast.Utils;
 
 namespace BlockBlast.Core
 {
@@ -33,16 +34,45 @@ namespace BlockBlast.Core
             {
                 BlockShape shape = BlockShapeData.GetRandomShape();
                 Block block = CreateBlock(shape, spawnPositions[i].position);
-                currentBlocks.Add(block);
+                if (block != null)
+                {
+                    currentBlocks.Add(block);
+                }
             }
         }
 
         private Block CreateBlock(BlockShape shape, Vector3 position)
         {
-            GameObject blockObj = Instantiate(blockPrefab);
-            blockObj.transform.position = position;
+            if (blockPrefab == null)
+            {
+                Debug.LogError("[BlockSpawner] Block prefab chưa được assign trong Inspector!");
+                return null;
+            }
+            
+            Block blockPrefabComponent = blockPrefab.GetComponent<Block>();
+            if (blockPrefabComponent == null)
+            {
+                Debug.LogError("[BlockSpawner] Block prefab không có Block component!");
+                return null;
+            }
+            
+            // Dùng singleton instance
+            if (ObjectPoolingBlock.Instant == null)
+            {
+                Debug.LogError("[BlockSpawner] Chưa có ObjectPoolingBlock trong scene! Tạo GameObject và add component ObjectPoolingBlock.");
+                return null;
+            }
+            
+            Block block = ObjectPoolingBlock.Instant.GetObjectType(blockPrefabComponent);
+            if (block == null)
+            {
+                Debug.LogError("[BlockSpawner] Không thể lấy block từ pool!");
+                return null;
+            }
+            
+            block.gameObject.SetActive(true);
+            block.transform.position = position;
 
-            Block block = blockObj.GetComponent<Block>();
             Sprite stoneSprite = config.blockStoneSprites[UnityEngine.Random.Range(0, config.blockStoneSprites.Length)];
             block.Initialize(shape, stoneSprite, config.cellSize);
             block.OnBlockPlaced += OnBlockPlaced;
@@ -78,7 +108,7 @@ namespace BlockBlast.Core
                 if (block != null)
                 {
                     block.OnBlockPlaced -= OnBlockPlaced;
-                    Destroy(block.gameObject);
+                    block.gameObject.SetActive(false);
                 }
             }
             currentBlocks.Clear();

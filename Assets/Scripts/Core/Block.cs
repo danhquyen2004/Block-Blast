@@ -34,11 +34,28 @@ namespace BlockBlast.Core
             cellSize = size;
             mainCamera = Camera.main;
             originalPosition = transform.position;
+            
+            // Reset state
+            isDragging = false;
+            isPlaced = false;
+
+            // Clear old visuals nếu có
+            ClearVisuals();
 
             CreateVisuals();
             
             // Spawn animation
             PlaySpawnAnimation();
+        }
+
+        private void ClearVisuals()
+        {
+            foreach (GameObject cellObj in cellVisuals)
+            {
+                if (cellObj != null)
+                    Destroy(cellObj);
+            }
+            cellVisuals.Clear();
         }
 
         private void PlaySpawnAnimation()
@@ -150,8 +167,9 @@ namespace BlockBlast.Core
         public void PlaceSuccess()
         {
             isPlaced = true;
-            SetSortingOrder(1); // Giảm xuống cùng level với cells trên board
             OnBlockPlaced?.Invoke(this);
+            
+            // Tắt ngay lập tức để không che hiệu ứng clear
             gameObject.SetActive(false);
         }
 

@@ -41,13 +41,13 @@ namespace BlockBlast.UI
         public void UpdateScore(int score)
         {
             if (scoreText != null)
-                scoreText.text = $"Score: {score}";
+                scoreText.text = $"{score}";
         }
 
         public void UpdateBestScore(int bestScore)
         {
             if (bestScoreText != null)
-                bestScoreText.text = $"Best: {bestScore}";
+                bestScoreText.text = $"{bestScore}";
         }
 
         public void UpdateCombo(int combo)

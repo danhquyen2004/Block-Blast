@@ -1,6 +1,7 @@
 using UnityEngine;
 using BlockBlast.Data;
 using BlockBlast.UI;
+using BlockBlast.Effects;
 using Cysharp.Threading.Tasks;
 using System.Threading;
 using DG.Tweening;
@@ -20,8 +21,10 @@ namespace BlockBlast.Core
         [SerializeField] private SaveManager saveManager;
         [SerializeField] private UIManager uiManager;
         [SerializeField] private BlockDragHandler dragHandler;
+        [SerializeField] private ComboEffectHandler comboEffectHandler;
 
         private bool isGameOver = false;
+        private Vector3 lastBlockPlacementPosition; // Vị trí đặt block cuối cùng
 
         private void Start()
         {
@@ -43,6 +46,7 @@ namespace BlockBlast.Core
             scoreManager.OnScoreChanged += uiManager.UpdateScore;
             scoreManager.OnBestScoreChanged += uiManager.UpdateBestScore;
             scoreManager.OnComboChanged += uiManager.UpdateCombo;
+            scoreManager.OnComboChanged += OnComboChanged;
             dragHandler.OnBlockPlacedSuccessfully += OnBlockPlaced;
 
             // UI Callbacks
@@ -86,6 +90,9 @@ namespace BlockBlast.Core
 
         public void OnBlockPlaced(Block block, Vector2Int position)
         {
+            // Lưu vị trí đặt block cho combo effect
+            lastBlockPlacementPosition = boardManager.GetWorldPosition(position);
+            
             // Đặt block lên board
             boardManager.PlaceBlock(block.Shape, position, block.StoneSprite);
             
@@ -113,6 +120,15 @@ namespace BlockBlast.Core
         {
             // Có thể thêm hiệu ứng vỡ ở đây
             Debug.Log($"Cleared {lines.Count} lines");
+        }
+        
+        private void OnComboChanged(int comboCount)
+        {
+            // Hiển thị combo effect tại vị trí đặt block
+            if (comboCount > 0 && comboEffectHandler != null)
+            {
+                comboEffectHandler.ShowComboAt(lastBlockPlacementPosition, comboCount);
+            }
         }
 
         private void OnAllBlocksPlaced()
@@ -169,6 +185,7 @@ namespace BlockBlast.Core
                 scoreManager.OnScoreChanged -= uiManager.UpdateScore;
                 scoreManager.OnBestScoreChanged -= uiManager.UpdateBestScore;
                 scoreManager.OnComboChanged -= uiManager.UpdateCombo;
+                scoreManager.OnComboChanged -= OnComboChanged;
             }
 
             if (dragHandler != null)

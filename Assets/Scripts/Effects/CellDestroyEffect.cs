@@ -15,6 +15,7 @@ namespace BlockBlast.Effects
         public void PlayEffect(Vector3 position, Sprite stoneSprite)
         {
             transform.position = position;
+            gameObject.SetActive(true);
 
             if (particleEffect != null)
             {
@@ -31,14 +32,14 @@ namespace BlockBlast.Effects
                 destroySound.Play();
             }
 
-            // Tự hủy sau khi effect xong
-            StartCoroutine(DestroyAfterDelay(2f));
+            // Tự return về pool sau khi effect xong
+            StartCoroutine(ReturnToPoolAfterDelay(2f));
         }
 
-        private IEnumerator DestroyAfterDelay(float delay)
+        private IEnumerator ReturnToPoolAfterDelay(float delay)
         {
             yield return new WaitForSeconds(delay);
-            Destroy(gameObject);
+            gameObject.SetActive(false);
         }
     }
 }
