@@ -111,12 +111,22 @@ namespace BlockBlast.Core
             
             // Lưu board state
             data.boardState = boardManager.GetBoardState();
+            data.boardSpriteIndices = boardManager.GetBoardSpriteIndices();
+            
+            // Debug: Đếm số ô đã fill
+            int filledCells = 0;
+            for (int i = 0; i < data.boardState.Length; i++)
+            {
+                if (data.boardState[i] == 1) filledCells++;
+            }
+            Debug.Log($"[SaveManager] Saving board with {filledCells} filled cells");
             
             // Lưu score data
             scoreManager.SaveToGameData(data);
             
-            // Lưu block data (nếu cần)
-            // ...
+            // Lưu block data
+            data.currentBlocks = blockSpawner.GetCurrentBlocksInfo();
+            Debug.Log($"[SaveManager] Saving {data.currentBlocks.Length} blocks info");
 
             await SaveGameAsync(data, ct);
         }
@@ -127,7 +137,7 @@ namespace BlockBlast.Core
             if (data != null)
             {
                 // Load board
-                boardManager.LoadBoardState(data.boardState);
+                boardManager.LoadBoardState(data.boardState, data.boardSpriteIndices);
                 
                 // Load score
                 scoreManager.LoadGameData(data);
@@ -135,16 +145,43 @@ namespace BlockBlast.Core
         }
 
         // Giữ sync version
-        public void LoadGameState(BoardManager boardManager, ScoreManager scoreManager)
+        public void LoadGameState(BoardManager boardManager, ScoreManager scoreManager, BlockSpawner blockSpawner)
         {
             GameData data = LoadGame();
             if (data != null)
             {
+                // Debug: Đếm số ô đã fill
+                int filledCells = 0;
+                if (data.boardState != null)
+                {
+                    for (int i = 0; i < data.boardState.Length; i++)
+                    {
+                        if (data.boardState[i] == 1) filledCells++;
+                    }
+                }
+                Debug.Log($"[SaveManager] Loading board with {filledCells} filled cells");
+                
                 // Load board
-                boardManager.LoadBoardState(data.boardState);
+                boardManager.LoadBoardState(data.boardState, data.boardSpriteIndices);
                 
                 // Load score
                 scoreManager.LoadGameData(data);
+                
+                // Load blocks
+                if (data.currentBlocks != null && data.currentBlocks.Length > 0)
+                {
+                    Debug.Log($"[SaveManager] Loading {data.currentBlocks.Length} saved blocks");
+                    blockSpawner.SpawnBlocksFromSave(data.currentBlocks);
+                }
+                else
+                {
+                    Debug.Log("[SaveManager] No saved blocks, spawning new ones");
+                    blockSpawner.SpawnBlocks();
+                }
+            }
+            else
+            {
+                Debug.LogWarning("[SaveManager] No save data found to load");
             }
         }
     }

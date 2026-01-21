@@ -17,6 +17,7 @@ namespace BlockBlast.Core
         public int X { get; private set; }
         public int Y { get; private set; }
         public bool IsFilled { get; private set; }
+        public int CurrentSpriteIndex { get; private set; } // Lưu index của sprite để restore sau khi load game
         #endregion
 
         #region Private Fields
@@ -60,10 +61,11 @@ namespace BlockBlast.Core
         #endregion
 
         #region Fill State
-        public void SetFilled(bool filled, Sprite stoneSprite, Sprite backgroundSprite)
+        public void SetFilled(bool filled, Sprite stoneSprite, Sprite backgroundSprite, int spriteIndex = 0)
         {
             IsFilled = filled;
             currentStoneSprite = stoneSprite;
+            CurrentSpriteIndex = spriteIndex;
             
             if (backgroundRenderer != null)
                 backgroundRenderer.sprite = backgroundSprite;
@@ -173,12 +175,21 @@ namespace BlockBlast.Core
             {
                 stoneRenderer.color = Color.white;
                 stoneRenderer.transform.localScale = Vector3.one;
+                stoneRenderer.transform.localRotation = Quaternion.identity;
                 
                 if (stoneRenderer.material != null)
                 {
                     stoneRenderer.material.DisableKeyword("GLOW_ON");
                 }
             }
+        }
+
+        /// <summary>
+        /// Lấy transform của stone để animate
+        /// </summary>
+        public Transform GetStoneTransform()
+        {
+            return stoneRenderer?.transform;
         }
         #endregion
 

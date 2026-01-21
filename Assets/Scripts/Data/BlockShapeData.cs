@@ -89,5 +89,39 @@ namespace BlockBlast.Data
             int randomIndex = Random.Range(0, AllShapes.Count);
             return AllShapes[randomIndex];
         }
+
+        public static int GetShapeIndex(BlockShape shape)
+        {
+            if (shape == null) return -1;
+            
+            for (int i = 0; i < AllShapes.Count; i++)
+            {
+                if (ShapesAreEqual(AllShapes[i], shape))
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        public static BlockShape GetShapeByIndex(int index)
+        {
+            if (index < 0 || index >= AllShapes.Count)
+            {
+                return null;
+            }
+            return AllShapes[index];
+        }
+
+        private static bool ShapesAreEqual(BlockShape a, BlockShape b)
+        {
+            if (a.cells.Count != b.cells.Count) return false;
+            
+            for (int i = 0; i < a.cells.Count; i++)
+            {
+                if (a.cells[i] != b.cells[i]) return false;
+            }
+            return true;
+        }
     }
 }

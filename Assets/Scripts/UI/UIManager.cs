@@ -13,10 +13,6 @@ namespace BlockBlast.UI
         [SerializeField] private TextMeshProUGUI scoreText;
         [SerializeField] private TextMeshProUGUI bestScoreText;
         
-        [Header("Combo UI")]
-        [SerializeField] private TextMeshProUGUI comboText;
-        [SerializeField] private GameObject comboPanel;
-        [SerializeField] private Animator comboAnimator;
 
         [Header("Game Over UI")]
         [SerializeField] private GameObject gameOverPanel;
@@ -52,6 +48,10 @@ namespace BlockBlast.UI
 
         public void UpdateCombo(int combo)
         {
+            // Không sử dụng UI panel combo nữa, dùng ComboEffectHandler
+            // Code này giữ lại để tránh lỗi nếu còn subscribe ở đâu đó
+            
+            /*
             if (combo > 0)
             {
                 if (comboText != null)
@@ -69,6 +69,7 @@ namespace BlockBlast.UI
                 if (comboPanel != null)
                     comboPanel.SetActive(false);
             }
+            */
         }
 
         public void ShowGameOver(int finalScore)
@@ -97,6 +98,18 @@ namespace BlockBlast.UI
         {
             if (menuPanel != null)
                 menuPanel.SetActive(false);
+        }
+
+        public void SetContinueButtonInteractable(bool interactable)
+        {
+            if (continueButton != null)
+                continueButton.interactable = interactable;
+        }
+
+        public void SetLoadGameButtonInteractable(bool interactable)
+        {
+            if (loadGameButton != null)
+                loadGameButton.interactable = interactable;
         }
 
         public void SetRestartButtonListener(System.Action callback)

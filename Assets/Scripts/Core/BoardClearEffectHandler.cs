@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 namespace BlockBlast.Core
 {
@@ -94,20 +95,30 @@ namespace BlockBlast.Core
 
         private IEnumerator AnimateScale(HashSet<Vector2Int> cellsToClear, float duration)
         {
-            float elapsed = 0f;
-            
-            while (elapsed < duration)
+            // Hiệu ứng "vỡ ra": Punch scale → Scale to 0 + Rotate (chỉ stone, không touch background)
+            foreach (Vector2Int pos in cellsToClear)
             {
-                elapsed += Time.deltaTime;
-                float scale = Mathf.Lerp(1f, 0f, elapsed / duration);
+                Cell cell = cells[pos.x, pos.y];
+                Transform stoneTransform = cell.GetStoneTransform();
                 
-                foreach (Vector2Int pos in cellsToClear)
-                {
-                    cells[pos.x, pos.y].SetScale(scale);
-                }
+                if (stoneTransform == null) continue;
                 
-                yield return null;
+                // Sequence: Nảy to → Xoay vỡ → Biến mất
+                Sequence sequence = DOTween.Sequence();
+                
+                // Bước 1: Punch scale (nảy to)
+                sequence.Append(stoneTransform.DOPunchScale(Vector3.one * 0.2f, duration * 0.3f, 5, 0.5f));
+                
+                // Bước 2: Scale về 0 + xoay (vỡ)
+                sequence.Append(stoneTransform.DOScale(0f, duration * 0.7f).SetEase(Ease.InBack));
+                sequence.Join(stoneTransform.DORotate(new Vector3(0, 0, 180), duration * 0.7f, RotateMode.FastBeyond360).SetEase(Ease.InQuad));
+                
+                // Delay ngẫu nhiên để các ô không vỡ cùng lúc
+                sequence.SetDelay(UnityEngine.Random.Range(0f, 0.05f));
             }
+            
+            // Đợi hết duration
+            yield return new WaitForSeconds(duration);
         }
 
         private void FinishClearEffect(HashSet<Vector2Int> cellsToClear)
@@ -115,7 +126,16 @@ namespace BlockBlast.Core
             foreach (Vector2Int pos in cellsToClear)
             {
                 Cell cell = cells[pos.x, pos.y];
-                cell.SetFilled(false, null, cellBackgroundSprite);
+                
+                // Reset stone transform về ban đầu (background không bị ảnh hưởng)
+                Transform stoneTransform = cell.GetStoneTransform();
+                if (stoneTransform != null)
+                {
+                    stoneTransform.localScale = Vector3.one;
+                    stoneTransform.localRotation = Quaternion.identity;
+                }
+                
+                cell.SetFilled(false, null, cellBackgroundSprite, 0);
                 spawnDestroyEffect?.Invoke(pos.x, pos.y);
             }
         }

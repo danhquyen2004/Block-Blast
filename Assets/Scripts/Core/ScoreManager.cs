@@ -34,6 +34,9 @@ namespace BlockBlast.Core
             int score = cellCount * config.baseScorePerCell;
             currentScore += score;
             OnScoreChanged?.Invoke(currentScore);
+            
+            // Kiểm tra best score
+            CheckAndUpdateBestScore();
         }
 
         public void AddScoreForClearedLines(int lineCount)
@@ -48,18 +51,13 @@ namespace BlockBlast.Core
                 currentScore += score;
                 OnScoreChanged?.Invoke(currentScore);
 
-                // Cập nhật combo
-                currentCombo++;
+                // Cập nhật combo: mỗi dòng/cột ăn được = +1 combo
+                currentCombo += lineCount;
                 movesSinceLastScore = 0;
                 OnComboChanged?.Invoke(currentCombo);
 
                 // Kiểm tra best score
-                if (currentScore > bestScore)
-                {
-                    bestScore = currentScore;
-                    SaveBestScore();
-                    OnBestScoreChanged?.Invoke(bestScore);
-                }
+                CheckAndUpdateBestScore();
             }
             else
             {
@@ -78,6 +76,16 @@ namespace BlockBlast.Core
             }
         }
 
+        private void CheckAndUpdateBestScore()
+        {
+            if (currentScore > bestScore)
+            {
+                bestScore = currentScore;
+                SaveBestScore();
+                OnBestScoreChanged?.Invoke(bestScore);
+            }
+        }
+
         public void ResetScore()
         {
             currentScore = 0;
@@ -85,6 +93,8 @@ namespace BlockBlast.Core
             movesSinceLastScore = 0;
             OnScoreChanged?.Invoke(currentScore);
             OnComboChanged?.Invoke(currentCombo);
+            // Đảm bảo best score vẫn hiển thị đúng khi reset
+            OnBestScoreChanged?.Invoke(bestScore);
         }
 
         private void LoadBestScore()
@@ -104,10 +114,13 @@ namespace BlockBlast.Core
             currentScore = data.currentScore;
             currentCombo = data.currentCombo;
             movesSinceLastScore = data.movesSinceLastScore;
-            bestScore = data.bestScore;
+            // Không load bestScore từ save file, luôn dùng PlayerPrefs
+            // bestScore được quản lý riêng và không bao giờ bị xóa
+            // bestScore = data.bestScore;
 
             OnScoreChanged?.Invoke(currentScore);
-            OnComboChanged?.Invoke(currentCombo);
+            // Không invoke OnComboChanged khi load để tránh hiển thị combo effect
+            // OnComboChanged?.Invoke(currentCombo);
             OnBestScoreChanged?.Invoke(bestScore);
         }
 

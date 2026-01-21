@@ -45,7 +45,8 @@ namespace BlockBlast.Core
             blockSpawner.OnAllBlocksPlaced += OnAllBlocksPlaced;
             scoreManager.OnScoreChanged += uiManager.UpdateScore;
             scoreManager.OnBestScoreChanged += uiManager.UpdateBestScore;
-            scoreManager.OnComboChanged += uiManager.UpdateCombo;
+            // Không dùng UI combo panel nữa, dùng ComboEffectHandler
+            // scoreManager.OnComboChanged += uiManager.UpdateCombo;
             scoreManager.OnComboChanged += OnComboChanged;
             dragHandler.OnBlockPlacedSuccessfully += OnBlockPlaced;
 
@@ -54,8 +55,13 @@ namespace BlockBlast.Core
             uiManager.SetNewGameButtonListener(StartNewGame);
             uiManager.SetLoadGameButtonListener(LoadGame);
 
+            // Kiểm tra save file và set button interactable
+            bool hasSaveFile = saveManager.HasSaveFile();
+            uiManager.SetContinueButtonInteractable(hasSaveFile);
+            uiManager.SetLoadGameButtonInteractable(hasSaveFile);
+
             // Bắt đầu game mới hoặc load
-            if (saveManager.HasSaveFile())
+            if (hasSaveFile)
             {
                 uiManager.ShowMenu();
             }
@@ -77,8 +83,7 @@ namespace BlockBlast.Core
         private void LoadGame()
         {
             uiManager.HideMenu();
-            saveManager.LoadGameState(boardManager, scoreManager);
-            blockSpawner.SpawnBlocks();
+            saveManager.LoadGameState(boardManager, scoreManager, blockSpawner);
             isGameOver = false;
         }
 
@@ -94,7 +99,7 @@ namespace BlockBlast.Core
             lastBlockPlacementPosition = boardManager.GetWorldPosition(position);
             
             // Đặt block lên board
-            boardManager.PlaceBlock(block.Shape, position, block.StoneSprite);
+            boardManager.PlaceBlock(block.Shape, position, block.StoneSprite, block.SpriteIndex);
             
             // Cộng điểm cho việc đặt block
             scoreManager.AddScoreForPlacedBlock(block.Shape.CellCount);
@@ -126,8 +131,8 @@ namespace BlockBlast.Core
         
         private void OnComboChanged(int comboCount)
         {
-            // Hiển thị combo effect tại vị trí đặt block
-            if (comboCount > 0 && comboEffectHandler != null)
+            // Hiển thị combo effect tại vị trí đặt block (chỉ từ x2 trở lên)
+            if (comboCount >= 2 && comboEffectHandler != null)
             {
                 comboEffectHandler.ShowComboAt(lastBlockPlacementPosition, comboCount);
             }
@@ -160,12 +165,20 @@ namespace BlockBlast.Core
             isGameOver = true;
             uiManager.ShowGameOver(scoreManager.CurrentScore);
             saveManager.DeleteSaveFileAsync().Forget();
+            
+            // Disable continue button vì đã xóa save file
+            uiManager.SetContinueButtonInteractable(false);
+            uiManager.SetLoadGameButtonInteractable(false);
         }
 
         private async UniTaskVoid AutoSaveDelayedAsync(float delay)
         {
             await UniTask.Delay(System.TimeSpan.FromSeconds(delay), cancellationToken: this.GetCancellationTokenOnDestroy());
             await saveManager.AutoSaveAsync(boardManager, scoreManager, blockSpawner);
+            
+            // Enable continue button sau khi save thành công
+            uiManager.SetContinueButtonInteractable(true);
+            uiManager.SetLoadGameButtonInteractable(true);
         }
 
         private void OnDestroy()
@@ -186,7 +199,7 @@ namespace BlockBlast.Core
             {
                 scoreManager.OnScoreChanged -= uiManager.UpdateScore;
                 scoreManager.OnBestScoreChanged -= uiManager.UpdateBestScore;
-                scoreManager.OnComboChanged -= uiManager.UpdateCombo;
+                // scoreManager.OnComboChanged -= uiManager.UpdateCombo;
                 scoreManager.OnComboChanged -= OnComboChanged;
             }
 

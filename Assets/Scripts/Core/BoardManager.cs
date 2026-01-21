@@ -64,7 +64,7 @@ namespace BlockBlast.Core
 
                     Cell cell = cellObj.GetComponent<Cell>();
                     cell.Initialize(x, y, false);
-                    cell.SetFilled(false, null, config.cellBackgroundSprite);
+                    cell.SetFilled(false, null, config.cellBackgroundSprite, 0);
                     cells[x, y] = cell;
                 }
             }
@@ -104,7 +104,7 @@ namespace BlockBlast.Core
             return true;
         }
 
-        public void PlaceBlock(BlockShape shape, Vector2Int position, Sprite stoneSprite)
+        public void PlaceBlock(BlockShape shape, Vector2Int position, Sprite stoneSprite, int spriteIndex)
         {
             clearEffectHandler.ClearEffectSprite = stoneSprite;
             
@@ -113,7 +113,7 @@ namespace BlockBlast.Core
                 int x = position.x + cell.x;
                 int y = position.y + cell.y;
 
-                cells[x, y].SetFilled(true, stoneSprite, config.cellBackgroundSprite);
+                cells[x, y].SetFilled(true, stoneSprite, config.cellBackgroundSprite, spriteIndex);
                 OnCellFilled?.Invoke(x, y);
             }
         }
@@ -243,37 +243,68 @@ namespace BlockBlast.Core
             {
                 for (int x = 0; x < width; x++)
                 {
-                    cells[x, y].SetFilled(false, null, config.cellBackgroundSprite);
+                    cells[x, y].SetFilled(false, null, config.cellBackgroundSprite, 0);
                 }
             }
         }
 
-        public int[,] GetBoardState()
+        public int[] GetBoardState()
         {
-            int[,] state = new int[width, height];
+            int[] state = new int[width * height];
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
-                    state[x, y] = cells[x, y].IsFilled ? 1 : 0;
+                    state[y * width + x] = cells[x, y].IsFilled ? 1 : 0;
                 }
             }
             return state;
         }
 
-        public void LoadBoardState(int[,] state)
+        public int[] GetBoardSpriteIndices()
         {
+            int[] spriteIndices = new int[width * height];
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
-                    bool isFilled = state[x, y] == 1;
-                    Sprite sprite = isFilled && config.blockStoneSprites.Length > 0 
-                        ? config.blockStoneSprites[0] 
-                        : null;
-                    cells[x, y].SetFilled(isFilled, sprite, config.cellBackgroundSprite);
+                    spriteIndices[y * width + x] = cells[x, y].CurrentSpriteIndex;
                 }
             }
+            return spriteIndices;
+        }
+
+        public void LoadBoardState(int[] state, int[] spriteIndices = null)
+        {
+            if (state == null)
+            {
+                Debug.LogError("[BoardManager] LoadBoardState: state is null!");
+                return;
+            }
+            
+            if (state.Length != width * height)
+            {
+                Debug.LogError($"[BoardManager] LoadBoardState: Invalid state length {state.Length}, expected {width * height}");
+                return;
+            }
+            
+            int filledCount = 0;
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    int index = y * width + x;
+                    bool isFilled = state[index] == 1;
+                    if (isFilled) filledCount++;
+                    
+                    int spriteIndex = (spriteIndices != null && spriteIndices.Length > index) ? spriteIndices[index] : 0;
+                    Sprite sprite = isFilled && config.blockStoneSprites.Length > spriteIndex 
+                        ? config.blockStoneSprites[spriteIndex] 
+                        : null;
+                    cells[x, y].SetFilled(isFilled, sprite, config.cellBackgroundSprite, spriteIndex);
+                }
+            }
+            Debug.Log($"[BoardManager] LoadBoardState: Loaded {filledCount} filled cells");
         }
         #endregion
         

@@ -15,6 +15,7 @@ namespace BlockBlast.Core
         
         public BlockShape Shape { get; private set; }
         public Sprite StoneSprite { get; private set; }
+        public int SpriteIndex { get; private set; }
 
         [SerializeField] private GameObject cellPrefab;
         private List<GameObject> cellVisuals = new List<GameObject>();
@@ -27,10 +28,11 @@ namespace BlockBlast.Core
 
         public Vector3 SizeBlockInitial = new Vector3(0.7f, 0.7f, 0.7f);
 
-        public void Initialize(BlockShape shape, Sprite stoneSprite, float size)
+        public void Initialize(BlockShape shape, Sprite stoneSprite, int spriteIndex, float size)
         {
             Shape = shape;
             StoneSprite = stoneSprite;
+            SpriteIndex = spriteIndex;
             cellSize = size;
             mainCamera = Camera.main;
             originalPosition = transform.position;
