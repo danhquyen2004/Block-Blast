@@ -138,6 +138,12 @@ namespace BlockBlast.Core
                 .SetEase(Ease.OutBack)
                 .OnComplete(() => 
                 {
+                    // Phát âm thanh drop block
+                    if (Utils.AudioManager.Instance != null)
+                    {
+                        Utils.AudioManager.Instance.PlayDropBlock();
+                    }
+                    
                     // Thông báo cho GameManager
                     OnBlockPlacedSuccessfully?.Invoke(block, gridPosition);
                     isProcessingPlacement = false;

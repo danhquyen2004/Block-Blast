@@ -19,11 +19,6 @@ namespace BlockBlast.Effects
 
             if (particleEffect != null)
             {
-                // Lấy màu từ sprite để dùng cho particle
-                Color spriteColor = SpriteHelper.GetAverageColor(stoneSprite);
-                var main = particleEffect.main;
-                main.startColor = spriteColor;
-                
                 particleEffect.Play();
             }
 

@@ -143,6 +143,12 @@ namespace BlockBlast.Core
                 isDragging = true;
                 transform.localScale = Vector3.one; // Scale up khi drag
                 SetSortingOrder(3); // Nâng lên cao nhất khi drag
+                
+                // Phát âm thanh select block
+                if (Utils.AudioManager.Instance != null)
+                {
+                    Utils.AudioManager.Instance.PlaySelectBlock();
+                }
             }
         }
 

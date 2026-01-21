@@ -55,6 +55,12 @@ namespace BlockBlast.Core
                 currentCombo += lineCount;
                 movesSinceLastScore = 0;
                 OnComboChanged?.Invoke(currentCombo);
+                
+                // Phát âm thanh clear dựa theo combo hiện tại
+                if (Utils.AudioManager.Instance != null)
+                {
+                    Utils.AudioManager.Instance.PlayClearSound(currentCombo);
+                }
 
                 // Kiểm tra best score
                 CheckAndUpdateBestScore();

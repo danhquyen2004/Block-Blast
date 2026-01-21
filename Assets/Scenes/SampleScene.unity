@@ -1946,7 +1946,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1788425234
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2025,7 +2025,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1837143405
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2086,6 +2086,65 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1837143404}
   m_CullTransparentMesh: 1
+--- !u!1 &1936292553
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1936292555}
+  - component: {fileID: 1936292554}
+  m_Layer: 0
+  m_Name: AudioManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1936292554
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1936292553}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c2d3268a113f7a4ab93e0f625b1389b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  clear1Sound: {fileID: 8300000, guid: c80eec8a08e4d764c9d5420294252500, type: 3}
+  clear2Sound: {fileID: 8300000, guid: d48bd0e98ff966a4d923e597eeb3cd06, type: 3}
+  clear3Sound: {fileID: 8300000, guid: 2440edc5d9c22fb48af686440015749d, type: 3}
+  clear4Sound: {fileID: 8300000, guid: 46f2d61dbd8f0f84b85b0c577f10baf2, type: 3}
+  clear5Sound: {fileID: 8300000, guid: 59972d728ac41fc41b5602e7fed4a4b8, type: 3}
+  clear6Sound: {fileID: 8300000, guid: 4ee12bc0cef3b194eb8d4b24e932e715, type: 3}
+  clear7Sound: {fileID: 8300000, guid: f8dd414c19aa699478ba2fceecf6ee08, type: 3}
+  clear8Sound: {fileID: 8300000, guid: 2212f058a8f3dc04b8fb74918a3e1ccd, type: 3}
+  clear9Sound: {fileID: 8300000, guid: 793a7abf5fbde3d4284a906df561b89b, type: 3}
+  selectBlockSound: {fileID: 8300000, guid: f6d6871667845044ea645696a0c842f7, type: 3}
+  dropdownBlockSound: {fileID: 8300000, guid: cce55bb043ce70e4385cc136aa52c018, type: 3}
+  gameOverSound: {fileID: 0}
+  buttonClickSound: {fileID: 0}
+  sfxSource: {fileID: 0}
+  musicSource: {fileID: 0}
+--- !u!4 &1936292555
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1936292553}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 9
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1956861050
 GameObject:
   m_ObjectHideFlags: 0
