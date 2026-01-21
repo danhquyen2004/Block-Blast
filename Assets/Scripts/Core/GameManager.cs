@@ -26,6 +26,15 @@ namespace BlockBlast.Core
         private bool isGameOver = false;
         private Vector3 lastBlockPlacementPosition; // Vị trí đặt block cuối cùng
 
+        private void Awake()
+        {
+            // Setup 60 FPS xuyên suốt game
+            Application.targetFrameRate = 60;
+            QualitySettings.vSyncCount = 0; // Tắt VSync để targetFrameRate có hiệu lực
+            
+            Debug.Log("Game Settings: Target FPS set to 60");
+        }
+
         private void Start()
         {
             InitializeGame();
